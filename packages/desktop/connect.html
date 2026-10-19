@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self'" />
+    <title>Konuşgaç</title>
+    <style>
+      :root { color-scheme: dark; font-family: 'Segoe UI', system-ui, sans-serif; }
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #15171c; color: #e9eaec; }
+      .card { width: min(440px, 92vw); background: #23262e; border-radius: 14px; padding: 32px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 20px 60px rgba(0, 0, 0, .5); }
+      img { width: 64px; height: 64px; align-self: center; }
+      h1 { margin: 0; font-size: 22px; text-align: center; }
+      p { margin: 0; color: #9aa0ab; font-size: 14px; line-height: 1.5; text-align: center; }
+      form { display: flex; flex-direction: column; gap: 10px; }
+      label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600; text-transform: uppercase; color: #9aa0ab; }
+      input { font: inherit; font-size: 15px; padding: 10px 12px; border-radius: 8px; border: 1px solid #353a45; background: #30343e; color: #e9eaec; text-transform: none; }
+      input:focus { outline: 2px solid #e8590c; border-color: transparent; }
+      button { font: inherit; font-weight: 600; padding: 11px; border: none; border-radius: 8px; background: #e8590c; color: #fff; cursor: pointer; }
+      button.plain { background: #30343e; color: #e9eaec; }
+      button.link { background: none; color: #74c0fc; padding: 4px; font-weight: 400; font-size: 14px; }
+      button:disabled { opacity: .6; cursor: default; }
+      .error { color: #ff8787; font-size: 14px; min-height: 1em; text-align: center; }
+      [hidden] { display: none !important; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <img src="icon.png" alt="" />
+
+      <!-- The server did not answer at start. -->
+      <section id="offline" hidden>
+        <h1>Bağlanılamadı</h1>
+        <p><span id="where"></span> adresine şu an ulaşılamıyor. İnternet bağlantını kontrol edip tekrar dene.</p>
+        <p style="margin-top: 14px"><button id="retry" style="width: 100%">Tekrar dene</button></p>
+      </section>
+
+      <!-- Another server: only for people who run their own. -->
+      <form id="form" hidden>
+        <h1>Başka bir sunucu</h1>
+        <p>Konuşgaç'ı herkes kendi sunucusunda da çalıştırabilir. Bir arkadaşın ya da topluluğun kendi sunucusu varsa adresini yaz.</p>
+        <label>
+          Sunucu adresi
+          <input id="url" placeholder="https://konusgac.ornek.org" required spellcheck="false" autocomplete="url" />
+        </label>
+        <div class="error" id="error"></div>
+        <button id="go">Bağlan</button>
+        <button type="button" class="plain" id="back">Vazgeç</button>
+      </form>
+
+      <button type="button" class="link" id="other">Başka bir sunucuya bağlan</button>
+      <button type="button" class="link" id="default" hidden>Konuşgaç'ın kendi sunucusuna dön</button>
+    </div>
+    <script>
+      const q = new URLSearchParams(location.search);
+      const $ = (id) => document.getElementById(id);
+      const offline = q.get('ulasilamadi');
+      const custom = q.get('ozel') === '1'; // currently on a server other than the default one
+
+      function show(mode) {
+        $('offline').hidden = mode !== 'offline';
+        $('form').hidden = mode !== 'form';
+        $('other').hidden = mode === 'form';
+        $('default').hidden = !custom;
+        if (mode === 'form') $('url').focus();
+      }
+      if (offline) $('where').textContent = offline;
+      show(offline ? 'offline' : 'form');
+
+      $('retry').addEventListener('click', () => window.konusgac.retry());
+      $('other').addEventListener('click', () => show('form'));
+      $('back').addEventListener('click', () => (offline ? show('offline') : window.konusgac.retry()));
+      $('default').addEventListener('click', () => window.konusgac.useDefaultServer());
+      $('form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const go = $('go');
+        go.disabled = true;
+        go.textContent = 'Kontrol ediliyor…';
+        $('error').textContent = '';
+        const res = await window.konusgac.setServer($('url').value);
+        if (!res.ok) {
+          $('error').textContent = res.error;
+          go.disabled = false;
+          go.textContent = 'Bağlan';
+        }
+      });
+    </script>
+  </body>
+</html>

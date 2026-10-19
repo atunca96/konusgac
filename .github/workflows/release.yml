@@ -1,0 +1,52 @@
+# Pushing a tag like v0.5.0 builds the Windows installer and attaches it to a GitHub release, and
+# publishes the server image ghcr.io/atunca96/konusgac (used by docker-compose.yml and kur.sh).
+# Konusgac-Kurulum.exe keeps its name in every release, so
+# https://github.com/atunca96/konusgac/releases/latest/download/Konusgac-Kurulum.exe always gives the newest;
+# latest.yml and the blockmap are what the installed app's updater reads.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run dist:desktop
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            packages/desktop/release/Konusgac-Kurulum.exe
+            packages/desktop/release/Konusgac-Kurulum.exe.blockmap
+            packages/desktop/release/latest.yml
+          generate_release_notes: true
+
+  docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: |
+            ghcr.io/atunca96/konusgac:latest
+            ghcr.io/atunca96/konusgac:${{ github.ref_name }}

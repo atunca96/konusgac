@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src 'self'" />
+    <title>Konuşgaç</title>
+    <!-- Shown the instant the app starts, while konusgac.com loads behind it. -->
+    <style>
+      html, body { margin: 0; height: 100%; }
+      body { display: grid; place-items: center; background: #23262e; color: #9aa0ab; font: 14px 'Segoe UI', system-ui, sans-serif; user-select: none; }
+      .box { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+      img { width: 88px; height: 88px; animation: bob 1.6s ease-in-out infinite; }
+      .dots { display: flex; gap: 6px; }
+      .dots span { width: 8px; height: 8px; border-radius: 50%; background: #e8590c; animation: blink 1.2s infinite; }
+      .dots span:nth-child(2) { animation-delay: .2s; }
+      .dots span:nth-child(3) { animation-delay: .4s; }
+      @keyframes bob { 50% { transform: translateY(-6px) scale(1.03); } }
+      @keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+      @media (prefers-reduced-motion: reduce) { img, .dots span { animation: none; } }
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <img src="icon.png" alt="" />
+      <div class="dots"><span></span><span></span><span></span></div>
+      <div>Konuşgaç açılıyor…</div>
+    </div>
+  </body>
+</html>

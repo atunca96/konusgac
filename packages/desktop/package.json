@@ -1,0 +1,76 @@
+{
+  "name": "@konusgac/desktop",
+  "version": "0.9.0",
+  "private": true,
+  "productName": "Konuşgaç",
+  "description": "Konuşgaç masaüstü uygulaması",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis --publish never"
+  },
+  "devDependencies": {
+    "electron": "^44.9.0",
+    "electron-builder": "^26.15.3"
+  },
+  "author": "Konuşgaç katkıcıları",
+  "license": "AGPL-3.0-only",
+  "build": {
+    "appId": "com.konusgac.app",
+    "productName": "Konuşgaç",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "tray-preload.cjs",
+      "connect.html",
+      "splash.html",
+      "tray-menu.html",
+      "icon.png",
+      "icon.ico",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico",
+      "artifactName": "Konusgac-Kurulum.${ext}"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "runAfterFinish": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "Konuşgaç",
+      "installerLanguages": [
+        "tr_TR"
+      ],
+      "language": "1055",
+      "uninstallDisplayName": "Konuşgaç",
+      "deleteAppDataOnUninstall": false
+    },
+    "electronVersion": "44.9.0",
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://konusgac.com/indir"
+      }
+    ],
+    "protocols": [
+      {
+        "name": "Konuşgaç",
+        "schemes": [
+          "konusgac"
+        ]
+      }
+    ]
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
+  },
+  "konusgac": {
+    "defaultServer": "https://konusgac.com"
+  }
+}

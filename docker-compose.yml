@@ -1,0 +1,56 @@
+# Konuşgaç with automatic HTTPS (Caddy). The easy way is kur.sh, which does all of this:
+#   curl -fsSL https://raw.githubusercontent.com/atunca96/konusgac/main/kur.sh | sudo bash -s -- konusgac.ornek.org
+# By hand:
+# 1. Point your domain's DNS at this machine; open ports 80, 443 (TCP) and 40000 (UDP and TCP).
+# 2. Put the domain into KONUSGAC_ALAN_ADI in a .env file next to this file:
+#      KONUSGAC_ALAN_ADI=konusgac.ornek.org
+# 3. docker compose up -d
+services:
+  konusgac:
+    image: ghcr.io/atunca96/konusgac:latest # ready-made image; "docker compose build" makes it from this folder instead
+    build: .
+    restart: unless-stopped
+    ports:
+      # Voice and video go straight to the server on this one port (TCP for networks that block UDP).
+      - '40000:40000/udp'
+      - '40000:40000/tcp'
+    environment:
+      TRUST_PROXY: '1' # Caddy is in front; take the client IP from X-Forwarded-For
+      KONUSGAC_REGISTRATION: open # 'closed' stops new sign-ups
+      KONUSGAC_MAX_UPLOAD_MB: '10'
+      # Where clients reach the voice port: the server's public IP (kur.sh writes it), else the domain.
+      KONUSGAC_RTC_ADDRESS: ${KONUSGAC_RTC_ADDRESS:-${KONUSGAC_ALAN_ADI}}
+      KONUSGAC_ALAN_ADI: ${KONUSGAC_ALAN_ADI} # links in e-mails and the Google return address
+      # Optional, put into .env with scripts/sunucu-ayari.ps1: e-mail through Resend, Google sign-in.
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      KONUSGAC_MAIL_FROM: ${KONUSGAC_MAIL_FROM:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      # Shown in /kosullar and /gizlilik: who runs this server and how to reach them.
+      KONUSGAC_ISLETEN: ${KONUSGAC_ISLETEN:-}
+      KONUSGAC_ILETISIM: ${KONUSGAC_ILETISIM:-}
+      # Platform operators (user names, comma separated): reports, removing content, platform bans.
+      KONUSGAC_YONETICILER: ${KONUSGAC_YONETICILER:-}
+    logging: &logs
+      # Server logs (with IP addresses) are kept small and the oldest are dropped, as the privacy notice says.
+      driver: json-file
+      options: { max-size: '10m', max-file: '3' }
+    volumes:
+      - veri:/data
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    command: caddy reverse-proxy --from ${KONUSGAC_ALAN_ADI:?KONUSGAC_ALAN_ADI tanımlı değil} --to konusgac:3001
+    logging: *logs
+    volumes:
+      - caddy:/data
+    depends_on:
+      - konusgac
+
+volumes:
+  veri:
+  caddy:

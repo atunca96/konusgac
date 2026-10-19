@@ -1,0 +1,29 @@
+{
+  "name": "@konusgac/server",
+  "version": "0.9.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "test": "tsx --test test/*.test.ts",
+    "seed": "tsx scripts/seed-dev.ts",
+    "typecheck": "tsc --noEmit",
+    "test:voice": "tsx scripts/voice-e2e.ts"
+  },
+  "dependencies": {
+    "@fastify/multipart": "^10.1.4",
+    "@fastify/static": "^10.1.6",
+    "@konusgac/shared": "*",
+    "fastify": "^5.12.7",
+    "mediasoup": "^3.30.1",
+    "tsx": "^4.23.15",
+    "ws": "^8.22.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/ws": "^8.18.2",
+    "typescript": "^7.0.2"
+  }
+}
